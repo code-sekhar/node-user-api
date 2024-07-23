@@ -143,8 +143,56 @@ app.delete('/api/users/:id', (req, res) => {
         }
     });
 });
-
+//Search API
+app.get('/api/users/:name', (req, res) => {
+    const {name,email} = req.params;
+    let query = 'SELECT * FROM users WHERE 1=1';
+    let queryParems = [];
+    if (name) {
+        query += ' AND name LIKE ?';
+        queryParems.push(`%${name}%`);
+    }
+    if (email) {
+        query += ' AND email LIKE ?';
+        queryParems.push(`%${email}%`);
+    }
+    db.query(query, queryParems, (err, result) => {
+        if (err) {
+            console.log(err);
+        } else {
+            res.status(200).send({
+                status: 200,
+                success: true,
+                message: 'Users fetched successfully',
+                data: result
+            })
+        }
+    
+});
+});
+//Pagination API
+app.post('/api/users/pagination', (req, res) => {
+    
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 2;
+    console.log(page,limit);
+    const offset = (page - 1) * limit;
+   
+    db.query('SELECT * FROM users LIMIT ? OFFSET ?', [limit, offset], (err, result) => {
+        if (err) {
+            console.log(err);
+        }else{
+            res.status(200).json({
+                status: 200,
+                success: true,
+                message: 'Users fetched successfully',
+                data: result
+            });
+           }
+        
+    });
+});
 const port = 3000;
 app.listen(port, () => {
     console.log(`Example app listening at http://localhost:${port}` .green);
-});
+})
